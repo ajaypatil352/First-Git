@@ -14,7 +14,8 @@ jobs:
        
      - name: install dependancy
        uses: actions/upload-artifacts@v4
-       
+     - name: download
+       uses: actions/download-artifacts@v4
 
         
         
