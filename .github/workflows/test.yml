@@ -16,8 +16,13 @@ jobs:
        uses: actions/upload-artifacts@v4
      - name: download
        uses: actions/download-artifacts@v4
-
-        
+ 
+     - name: Cache Primes
+       id: cache-primes
+       uses: actions/cache@v4
+       with:
+         path: prime-numbers
+         key: ${{ runner.os }}-prime
         
      
 
