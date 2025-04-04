@@ -5,7 +5,20 @@ on:
 
 jobs:
   build: 
+     name: create a PR
      runs-on: ubuntu-latest
+     if: github.event_name == 'push'
+     steps:
+     - name: checkout code
+       uses: actions/checkout@v3
+       
+     - name: install dependancy
+       uses: actions/upload-artifacts@v4
+       
+
+        
+        
+     
 
      
   
