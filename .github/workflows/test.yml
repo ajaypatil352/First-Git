@@ -1,4 +1,4 @@
-name: gihub workflow
+name: gihub workflow with feature
 
 on:
   push:
