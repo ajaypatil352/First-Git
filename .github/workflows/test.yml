@@ -1,1 +1,11 @@
-##Github action
+name: gihub workflow
+
+on:
+  push:
+
+jobs:
+  build: 
+     runs-on: ubunt-latest
+
+     
+  
