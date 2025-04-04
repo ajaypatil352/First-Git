@@ -23,8 +23,9 @@ jobs:
        with:
          path: prime-numbers
          key: ${{ runner.os }}-prime
-        
-     
-
-     
+      
+     - name: Generate Prime Numbers
+       if: steps.cache-primes.outputs.cache-hit != 'true'
+       run: /generate-primes.sh -d prime-numbers
+       
   
