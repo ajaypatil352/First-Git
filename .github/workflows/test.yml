@@ -1,24 +1,61 @@
-name: gihub workflow
+name: Yocto Remote Build
 
 on:
+  workflow_dispatch:
   push:
+    branches:
+      - main
 
 jobs:
-  build: 
-     name: create a PR
-     runs-on: ubuntu-latest
-     if: github.event_name == 'push'
-     steps:
-     - name: checkout code
-       uses: actions/checkout@v3
-       
-     - name: install dependancy
-       uses: actions/upload-artifacts@v4
-       
+  yocto-build:
+    name: Build Yocto on Remote VM
+    runs-on: ubuntu-latest
 
-        
-        
-     
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
 
-     
-  
+      - name: SSH into VM and Build Yocto
+        run: |
+          ssh ${{ secrets.VM_HOST }} << 'EOF'
+            set -eux
+
+            # Step 1: Install Yocto dependencies
+            sudo apt-get update
+            sudo apt-get install -y \
+              gawk wget git-core diffstat unzip texinfo gcc \
+              build-essential chrpath socat cpio python3 python3-pip \
+              python3-pexpect xz-utils debianutils iputils-ping \
+              python3-git python3-jinja2 libegl1-mesa libsdl1.2-dev \
+              pylint xterm curl
+
+            # Step 2: Create working directory
+            mkdir -p ~/yocto-build && cd ~/yocto-build
+
+            # Step 3: Download poky source (change branch as needed)
+            if [ ! -d poky ]; then
+              git clone -b kirkstone https://git.yoctoproject.org/git/poky.git
+            fi
+
+            # Step 4: Initialize environment and build
+            cd poky
+            source oe-init-build-env build
+
+            # Step 5: Build core image
+            bitbake core-image-minimal
+          EOF
+
+      - name: Copy Yocto Build Artifacts from Remote VM
+        run: |
+          mkdir -p artifacts
+          scp -r ${{ secrets.VM_HOST }}:~/yocto-build/poky/build/tmp/deploy/images/ artifacts/
+
+      - name: Upload Yocto Image Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: yocto-images
+          path: artifacts/images/
